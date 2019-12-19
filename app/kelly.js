@@ -35,16 +35,6 @@ function Product(id, imageUrl, title, price, author, description) {
     };
  }
 
- let products = [
-    new Product(1, "/images/alpaca.jpeg", "Friendly Face", 3.99, "Jimmy Johns", "This is a wonderful piece of art. It connects with the viewer on many levels"),
-    new Product(2, "/images/llama.jpeg", "Hello", 75, "M Lee", "Lots and lots of words. You definitely need this"),
-    new Product(3, "/images/sheep.jpeg", "Who ewe looking at?", 45, "Rosco", "Think ewe have attitude? Think again!!"),
-    new Product(4, "/images/cow.jpg", "Things are Looking Up", 89, "Mrs. Jerry", "More and more words to get you to fall in love with this cow. You know you want it."),
-    new Product(5, "/images/calf.jpeg", "Ready for Winter", 200, "Mr. Ben", "This shaggy calf just makes you smile." )
- ];
-
- let cartItems = [];
-
 function Cart() {
     this.lineItems = [];
     this.total = 0;
@@ -61,38 +51,85 @@ function Cart() {
         this.total = this.subtotal * this.taxRate;
     };
     this.calculateTax = function() {
-        this.tax = this.total - this.subtotal
+        this.tax = this.total - this.subtotal;
     };
     this.addProductToCart = function(id) {
-        let foundProduct = Database.getProductById(id);
-        if (foundProduct !== 'undefined') {
-            this.lineItems.push(foundProduct)
+        let product = Database.getProductById(id);
+        if (product !== 'undefined') {
+            this.lineItems.push(product);
         }
+        this.calculateSubtotal();
+        this.calculateTotal();
+        this.calculateTax();
     };
-}
+    this.removeProductFromCart = function(id){
+        let foundProduct = Database.getProductById(id);
+        this.lineItems = this.lineItems.filter(function(product){
+            let keepInCart = product !== foundProduct;
+            if (keepInCart === false) {
+                product.increaseQuantity();
+            }
+            return keepInCart;
+        });
+        this.calculateSubtotal();
+        this.calculateTotal();
+        this.calculateTax();
+    }; 
+} 
+const CART = new Cart();
+
+let Database = { 
+    products: [],
+    addNewProduct: function(product) {
+        this.products.push(product);
+    },
+    getProductById: function(id) {
+        this.products.find(function(product){
+            return product.id === id;
+        });
+    },
+};
+
+let alpaca = new Product(1, "/images/alpaca.jpeg", "Friendly Face", 3.99, "Jimmy Johns", "This is a wonderful piece of art. It connects with the viewer on many levels");
+let llama = new Product(2, "/images/llama.jpeg", "Hello", 75, "M Lee", "Lots and lots of words. You definitely need this");
+let sheep = new Product(3, "/images/sheep.jpeg", "Who ewe looking at?", 45, "Rosco", "Think ewe have attitude? Think again!!");
+let cow = new Product(4, "/images/cow.jpg", "Things are Looking Up", 89, "Mrs. Jerry", "More and more words to get you to fall in love with this cow. You know you want it.");
+let calf = new Product(5, "/images/calf.jpeg", "Ready for Winter", 200, "Mr. Ben", "This shaggy calf just makes you smile." );
+
+Database.addNewProduct(alpaca);
+Database.addNewProduct(llama);
+Database.addNewProduct(sheep);
+Database.addNewProduct(cow);
+Database.addNewProduct(calf);
 
 
-products.forEach(function(product){
+Database.products.forEach(function(product){
     document.getElementById("products").appendChild(buildCard(product));
-    document.getElementById(product.id).addEventListener('click', function(event){
-        if (event.target.matches('a.card-footer-item')) {
-            console.log(event.target);
-            cartItems.push(product);
-            console.log (cartItems);
-        }
-    });
+    // document.getElementById(product.id).addEventListener('click', function(event){
+    //     if (event.target.matches('a.card-footer-item')) {
+    //         console.log(event.target);
+    //         cartItems.push(product);
+    //         console.log (cartItems);
+    //     }
+    // });
 });
 
-//add events console.log the events. push events into cart array. create database object rebuild cart object - it will be where we fire custom events. create template as well to see how it works.
+document.getElementById('products').addEventListener('click', function(event){
+    if (event.target.matches("a.card-footer-item")) {
+        let productId = parseInt(event.target.dataset.productId);
+        CART.addProductToCart(productId);
+        event.target.dispatchEvent(addToCardEvent);
+    }
+    
+});
 
+document.addEventListener('addedToCart', function(event){
+    document.getElementById('counter').innerText = CART.lineItems.length;
+});
 
-// document.getElementById('products').addEventListener('click', function(event){
-//     if (event.target.matches("a.card-footer-item")) {
-//         console.log("added to cart");
-//         console.log(event.target);
-//         cartItems.push(product);
-//     }
-// });
+let addToCardEvent = new CustomEvent('addedToCart', {
+    bubbles: true
+});
 
 
 // JASON'S CODE FOR EVENTS
@@ -145,7 +182,7 @@ function buildCardImage(product) {
 }
 
 function buildCardContent(product) {
-     let cardContent = document.createElement("div"), 
+    let cardContent = document.createElement("div"), 
         title = document.createElement("p"),
         price = document.createElement("p"),
         author = document.createElement("e"),
@@ -178,6 +215,8 @@ function buildCardFooter(product) {
     cardFooterItem.classList.add("card-footer-item");
 
     cardFooterItem.innerText = "Add to Cart";
+
+    cardFooterItem.dataset.productId = product.id;
 
     cardFooter.appendChild(cardFooterItem);
 
