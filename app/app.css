@@ -1,0 +1,15 @@
+#counterIcon {
+    position: relative;
+}
+
+#counter {
+    border-radius: 50%;
+    border: 5px solid white;
+    background-color: #00d1b2;
+    padding: .25rem .5rem;
+    position: absolute;
+    bottom: -48%;
+    right: -9%;
+    font-size: 0.65rem;
+    font-weight: bolder;
+}
