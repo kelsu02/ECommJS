@@ -6,6 +6,8 @@
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>EComm JS</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.8.0/css/bulma.min.css">
+    <link rel="stylesheet" href="app/app.css">
+    <script defer src="https://use.fontawesome.com/releases/v5.3.1/js/all.js"></script>
 </head>
 <body>
     <template id="cardTemplate">
@@ -31,6 +33,18 @@
             </div>
         </article>
     </template>
+    <nav class="navbar is-primary">
+        <div class="container">
+            <div class="navbar-menu">
+                <div class="navbar-end">
+                    <span id="cartIcon" class="navbar-item">
+                        <i class="fas fa-shopping-cart fa-2x"></i>
+                        <span id="counter">0</span>
+                    </span>
+                </div>
+            </div>
+        </div>
+    </nav>
     <section class="section">
         <div class="container">
             <main id="products" class="columns is-multiline">
