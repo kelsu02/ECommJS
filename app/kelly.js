@@ -1,5 +1,3 @@
-const E = document.createElement;
-
 /**
  * build the DOM elements needed for each of your products. Either copy and paste your code from the products/cart
  * example OR rewrite the code below before starting to write the JavaScript that will build the DOM nodes needed.
@@ -17,14 +15,18 @@ const E = document.createElement;
   * @param {string} description 
   */
 
-function Product(id, imageUrl, title, price, author, description) {
+//write for if none available change to sold out, also check on quantity available
+
+cardElement.querySelector('.price').innerText = `$${product.price.toFixed(2)}`  --- goes whereever prices are!! in Card!!
+
+function Product(id, imageUrl, title, price, author, description, quantityAvailable) {
     this.id = id;
     this.imageUrl = imageUrl;
     this.title = title;
     this.price = price;
     this.author = author;
     this.description = description;
-    this.quantityAvailable = 1;
+    this.quantityAvailable = quantityAvailable;
     this.increaseQuantity = function (number) {
         number = typeof number === 'undefined' ? 1 : number;
         this.increaseQuantity += number;
@@ -42,20 +44,19 @@ function Cart() {
     this.tax = 0;
     this.taxRate = 1.06;
     this.calculateSubtotal = function(){
-        let productTotal = this.lineItems.reduce(function (acc, product) {
-            return acc += product.price;
+        let productTotal = this.lineItems.reduce(function (acc, currentProduct) {
+            return acc += currentProduct.price;
         }, 0);
-        this.subtotal = productTotal;
+        this.subtotal = +(productTotal).toFixed(2);
     };
     this.calculateTotal = function() {
-        this.total = this.subtotal * this.taxRate;
+        this.total = +(this.subtotal * this.taxRate).toFixed(2);
     };
     this.calculateTax = function() {
-        this.tax = this.total - this.subtotal;
+        this.tax = +(this.total - this.subtotal).toFixed(2);
     };
-    this.addProductToCart = function(id) {
-        let product = Database.getProductById(id);
-        if (product !== 'undefined') {
+    this.addProductToCart = function(product) {
+        if (product instanceof Product) {
             this.lineItems.push(product);
         }
         this.calculateSubtotal();
@@ -76,7 +77,6 @@ function Cart() {
         this.calculateTax();
     }; 
 } 
-const CART = new Cart();
 
 let Database = { 
     products: [],
@@ -84,17 +84,17 @@ let Database = {
         this.products.push(product);
     },
     getProductById: function(id) {
-        this.products.find(function(product){
+        return this.products.find(function(product){
             return product.id === id;
         });
     },
 };
 
-let alpaca = new Product(1, "/images/alpaca.jpeg", "Friendly Face", 3.99, "Jimmy Johns", "This is a wonderful piece of art. It connects with the viewer on many levels");
-let llama = new Product(2, "/images/llama.jpeg", "Hello", 75, "M Lee", "Lots and lots of words. You definitely need this");
-let sheep = new Product(3, "/images/sheep.jpeg", "Who ewe looking at?", 45, "Rosco", "Think ewe have attitude? Think again!!");
-let cow = new Product(4, "/images/cow.jpg", "Things are Looking Up", 89, "Mrs. Jerry", "More and more words to get you to fall in love with this cow. You know you want it.");
-let calf = new Product(5, "/images/calf.jpeg", "Ready for Winter", 200, "Mr. Ben", "This shaggy calf just makes you smile." );
+let alpaca = new Product(1, "/images/alpaca.jpeg", "Friendly Face", 3.99, "Jimmy Johns", "This is a wonderful piece of art. It connects with the viewer on many levels",2);
+let llama = new Product(2, "/images/llama.jpeg", "Hello", 75, "M Lee", "Lots and lots of words. You definitely need this",2);
+let sheep = new Product(3, "/images/sheep.jpeg", "Who ewe looking at?", 45, "Rosco", "Think ewe have attitude? Think again!!",2);
+let cow = new Product(4, "/images/cow.jpg", "Things are Looking Up", 89, "Mrs. Jerry", "More and more words to get you to fall in love with this cow. You know you want it.",2);
+let calf = new Product(5, "/images/calf.jpeg", "Ready for Winter", 200, "Mr. Ben", "This shaggy calf just makes you smile.",2);
 
 Database.addNewProduct(alpaca);
 Database.addNewProduct(llama);
@@ -102,52 +102,10 @@ Database.addNewProduct(sheep);
 Database.addNewProduct(cow);
 Database.addNewProduct(calf);
 
-
-Database.products.forEach(function(product){
-    document.getElementById("products").appendChild(buildCard(product));
-    // document.getElementById(product.id).addEventListener('click', function(event){
-    //     if (event.target.matches('a.card-footer-item')) {
-    //         console.log(event.target);
-    //         cartItems.push(product);
-    //         console.log (cartItems);
-    //     }
-    // });
-});
-
-document.getElementById('products').addEventListener('click', function(event){
-    if (event.target.matches("a.card-footer-item")) {
-        let productId = parseInt(event.target.dataset.productId);
-        CART.addProductToCart(productId);
-        event.target.dispatchEvent(addToCardEvent);
-    }
-    
-});
-
-document.addEventListener('addedToCart', function(event){
-    document.getElementById('counter').innerText = CART.lineItems.length;
-});
-
-let addToCardEvent = new CustomEvent('addedToCart', {
-    bubbles: true
-});
-
-
-// JASON'S CODE FOR EVENTS
-//   set on add to cart it adds to product array in the database
-
-//  document.getElementById('products').addEventListener('click', function(event){
-//     if (event.target.matches('a.card-footer-item')) {
-//         console.log(event.target);
-//     }
-
-//     if (event.target.matches("p.title")) {
-//         console.log(`The title of this piece of art is ${product.title}`);
-//     }
-// });
-
+// const E = document.createElement;
 
 function buildCard(product) {
-    console.log(E);
+    // console.log(E);
     // let article = E("article"),
     //     card = document.createElement("div");
     let article = document.createElement("article"),
@@ -212,7 +170,7 @@ function buildCardFooter(product) {
         cardFooterItem = document.createElement("a");
 
     cardFooter.classList.add("card-footer");
-    cardFooterItem.classList.add("card-footer-item");
+    cardFooterItem.classList.add("card-footer-item", "sold-out");
 
     cardFooterItem.innerText = "Add to Cart";
 
@@ -223,20 +181,44 @@ function buildCardFooter(product) {
     return cardFooter;
 }
 
-// inside of forEach
+Database.products.forEach(function(product){
+    document.getElementById("products").appendChild(buildCard(product));
+    // document.getElementById(product.id).addEventListener('click', function(event){
+        //     if (event.target.matches('a.card-footer-item')) {
+            //         console.log(event.target);
+            //         cartItems.push(product);
+            //         console.log (cartItems);
+            //     }
+            // });
+        // });
+});
 
+const CART = new Cart();
 
-// article.addEventListener('click', function(event){
-//     console.log('Hello from the article listener');
-//     console.log(event.target);
-// });
+document.getElementById('products').addEventListener('click', function(event){
+    if (event.target.matches("a.card-footer-item")) {
+        let productId = parseInt(event.target.dataset.productId);
+        let product = Database.getProductById(productId);
+        if (product instanceof Product && product.quantityAvailable > 0) {
+            CART.addProductToCart(product);
+            product.decreaseQuantity();
+            if(product.quantityAvailable === 0) {
+                document.getElementById(productId).querySelector(".card-footer-item").innerText = "Sold Out";
+                document.getElementById(productId).querySelector(".card-footer-item").style.color = "#f00";
+                document.getElementById(productId).querySelector(".card-footer-item").style.cursor = "default";
+                
+            }
+            event.target.dispatchEvent(addToCartEvent);
+        }
+    }
+    console.log(CART);
+});
 
-// article.querySelector('.card-footer-item').addEventListener('click', function(event){
-//     event.stopPropagation();
-//     console.log("Hello from the button listener");
-//     console.log(event);
-// });
+document.addEventListener('addedToCart', function(event){
+    document.getElementById('counter').innerText = CART.lineItems.length;
+});
 
-
-
+let addToCartEvent = new CustomEvent('addedToCart', {
+    bubbles: true
+});
 
